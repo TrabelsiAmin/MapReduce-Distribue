@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MapReduce Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6">
+    <h1 class="text-2xl font-bold mb-4">MapReduce Dashboard</h1>
+    <div class="mb-4">
+        <h2 class="text-xl">Progress</h2>
+        <div class="w-full bg-gray-200 rounded">
+            <div id="progress" class="bg-blue-500 h-4 rounded" style="width: 0%"></div>
+        </div>
+        <p id="progress-text" class="mt-2"></p>
+    </div>
+    <h2 class="text-xl mb-2">Tasks</h2>
+    <table class="w-full bg-white shadow rounded mb-4">
+        <thead>
+            <tr class="bg-gray-200">
+                <th class="p-2">ID</th>
+                <th class="p-2">Type</th>
+                <th class="p-2">File</th>
+                <th class="p-2">Status</th>
+                <th class="p-2">Worker</th>
+            </tr>
+        </thead>
+        <tbody id="tasks"></tbody>
+    </table>
+    <h2 class="text-xl mb-2">Workers</h2>
+    <table class="w-full bg-white shadow rounded">
+        <thead>
+            <tr class="bg-gray-200">
+                <th class="p-2">ID</th>
+                <th class="p-2">Status</th>
+                <th class="p-2">Address</th>
+            </tr>
+        </thead>
+        <tbody id="workers"></tbody>
+    </table>
+    <script>
+        function updateDashboard() {
+            fetch('/data')
+                .then(response => response.json())
+                .then(data => {
+                    // Update progress
+                    const progress = (data.tasksDone / data.totalTasks) * 100;
+                    document.getElementById('progress').style.width = progress + '%';
+                    document.getElementById('progress-text').textContent = `${data.tasksDone}/${data.totalTasks} tasks completed`;
+
+                    // Update tasks table
+                    const tasksTable = document.getElementById('tasks');
+                    tasksTable.innerHTML = '';
+                    data.tasks.forEach(task => {
+                        const row = tasksTable.insertRow();
+                        row.innerHTML = `
+                            <td class="p-2">${task.ID}</td>
+                            <td class="p-2">${task.Type}</td>
+                            <td class="p-2">${task.File || '-'}</td>
+                            <td class="p-2">${task.Status}</td>
+                            <td class="p-2">${task.WorkerID || '-'}</td>
+                        `;
+                    });
+
+                    // Update workers table
+                    const workersTable = document.getElementById('workers');
+                    workersTable.innerHTML = '';
+                    data.workers.forEach(worker => {
+                        const row = workersTable.insertRow();
+                        row.innerHTML = `
+                            <td class="p-2">${worker.ID}</td>
+                            <td class="p-2">${worker.Status}</td>
+                            <td class="p-2">${worker.Address}</td>
+                        `;
+                    });
+                })
+                .catch(err => console.error('Error fetching data:', err));
+            setTimeout(updateDashboard, 1000);
+        }
+        updateDashboard();
+    </script>
+</body>
+</html>
